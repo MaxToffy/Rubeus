@@ -1,0 +1,45 @@
+name: Build Rubeus
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+    
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+    
+    - name: Restore NuGet packages
+      run: nuget restore Rubeus.sln
+    
+    - name: Build solution (Release)
+      run: msbuild Rubeus.sln /p:Configuration=Release /p:Platform="Any CPU" /m /p:TargetFrameworkVersion=v4.8
+    
+    - name: Build solution (Debug)
+      run: msbuild Rubeus.sln /p:Configuration=Debug /p:Platform="Any CPU" /m /p:TargetFrameworkVersion=v4.8
+    
+    - name: Upload Release artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Rubeus-Release
+        path: Rubeus/bin/Release/
+        if-no-files-found: error
+    
+    - name: Upload Debug artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Rubeus-Debug
+        path: Rubeus/bin/Debug/
+        if-no-files-found: error
